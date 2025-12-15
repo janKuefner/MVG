@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <title>MVG Abfahrten</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      font-family: system-ui, Arial, sans-serif;
+      margin: 24px;
+    }
+    h1 {
+      margin-bottom: 12px;
+    }
+    ul {
+      padding-left: 20px;
+    }
+    li {
+      margin-bottom: 6px;
+      white-space: nowrap;
+    }
+    .error {
+      color: darkred;
+    }
+  </style>
+</head>
+<body>
+  <h1>MVG Abfahrten (nächste 120 Minuten)</h1>
+  <button onclick="loadDepartures()">Neu laden</button>
+  <p id="status"></p>
+  <ul id="list"></ul>
+
+  <script src="script.js"></script>
+</body>
+</html>
