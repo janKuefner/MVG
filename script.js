@@ -1,55 +1,53 @@
-const API_URL =
-  "https://v6.db.transport.rest/stops/623074/departures?duration=15";
+// Hilfsfunktion: formatiert Zeit + Zeile + Richtung
+function formatDeparture(dep, removeBusPrefix = false) {
+  // Zeit: "2025-12-16T21:07:00+01:00" → "21:07"
+  const time = dep.when
+    .split("T")[1]
+    .split("+")[0]
+    .substring(0, 5);
 
-function formatWhenHHMM(whenStr) {
-  // jq: .when | split("T")[1] | split("+")[0][0:5]
-  // Beispiel: 2025-12-16T21:07:00+01:00 -> 21:07
-  if (!whenStr || typeof whenStr !== "string") return "—";
-  const tPart = whenStr.split("T")[1];          // "21:07:00+01:00"
-  if (!tPart) return "—";
-  const noTz = tPart.split("+")[0].split("Z")[0]; // "21:07:00" (oder "21:07:00" bei Z)
-  return noTz.slice(0, 5);                      // "21:07"
-}
-
-function stripBusPrefix(lineName) {
-  // jq: sub("^Bus "; "")
-  if (!lineName || typeof lineName !== "string") return "?";
-  return lineName.replace(/^Bus\s+/, "");
-}
-
-async function loadDepartures() {
-  const status = document.getElementById("status");
-  const list = document.getElementById("list");
-
-  status.className = "";
-  status.textContent = "Lade…";
-  list.innerHTML = "";
-
-  try {
-    const res = await fetch(API_URL, { cache: "no-store" });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
-    const data = await res.json();
-
-    data.departures.forEach((dep) => {
-      const when = formatWhenHHMM(dep.when);
-      const line = stripBusPrefix(dep.line?.name);
-      const direction = dep.direction ?? "?";
-
-      const li = document.createElement("li");
-      li.textContent = `${when}  ${line} → ${direction}`;
-      list.appendChild(li);
-    });
-
-    status.textContent = `OK (${data.departures.length} Abfahrten)`;
-  } catch (err) {
-    status.className = "error";
-    status.textContent = err?.message ?? "Fehler beim Laden";
+  // Linienname ggf. "Bus " entfernen
+  let line = dep.line.name;
+  if (removeBusPrefix) {
+    line = line.replace(/^Bus /, "");
   }
+
+  return `${time}  ${line} → ${dep.direction}`;
 }
 
-// automatisch beim Laden der Seite
-loadDepartures();
+// Allgemeine Fetch-Funktion
+async function loadDepartures(url, filterFn, targetId, removeBusPrefix = false) {
+  const res = await fetch(url);
+  const data = await res.json();
 
-// optional: Auto-Refresh alle 60 Sekunden
-// setInterval(loadDepartures, 60_000);
+  const lines = data.departures
+    .filter(filterFn)
+    .map(dep => formatDeparture(dep, removeBusPrefix));
+
+  document.getElementById(targetId).textContent =
+    lines.length ? lines.join("\n") : "Keine Abfahrten";
+}
+
+/* ===== Aufrufe entsprechen exakt deinen curl/jq-Beispielen ===== */
+
+// 1) Bus – Stop 623074
+loadDepartures(
+  "https://v6.db.transport.rest/stops/623074/departures?duration=120",
+  () => true,          // keine Filter
+  "bus",
+  true                // "Bus " entfernen
+);
+
+// 2) S4 / S27 – Stop 8004158
+loadDepartures(
+  "https://v6.db.transport.rest/stops/8004158/departures?duration=120",
+  dep => dep.line.name === "S4" || dep.line.name === "S27",
+  "sbahn1"
+);
+
+// 3) S7 / S27 – Stop 8005419
+loadDepartures(
+  "https://v6.db.transport.rest/stops/8005419/departures?duration=120",
+  dep => dep.line.name === "S7" || dep.line.name === "S27",
+  "sbahn2"
+);
