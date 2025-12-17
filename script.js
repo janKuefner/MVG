@@ -38,16 +38,16 @@ loadDepartures(
   true                // "Bus " entfernen
 );
 
-// 2) S4 / S27 – Stop 8004158
+// 2) S4 / S20 – Stop 8004158
 loadDepartures(
   "https://v6.db.transport.rest/stops/8004158/departures?duration=120",
-  dep => dep.line.name === "S4" || dep.line.name === "S27",
+  dep => dep.line.name === "S4" || dep.line.name === "S20",
   "sbahn1"
 );
 
-// 3) S7 / S27 – Stop 8005419
+// 3) S7 / S20 – Stop 8005419
 loadDepartures(
   "https://v6.db.transport.rest/stops/8005419/departures?duration=120",
-  dep => dep.line.name === "S7" || dep.line.name === "S27",
+  dep => dep.line.name === "S7" || dep.line.name === "S20",
   "sbahn2"
 );
